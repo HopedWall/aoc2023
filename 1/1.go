@@ -8,22 +8,10 @@ import (
 	"unicode"
 )
 
-func main() {
-
-	fileName := "example.txt"
-	readFile, err := os.Open(fileName)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	fileScanner := bufio.NewScanner(readFile)
-
+func GetSumOfFile(file *os.File) (sum int) {
+	fileScanner := bufio.NewScanner(file)
 	fileScanner.Split(bufio.ScanLines)
-
-	sum := 0
-
 	for fileScanner.Scan() {
-		//fmt.Println(fileScanner.Text())
 		text := fileScanner.Text()
 		var numbers string
 
@@ -38,11 +26,14 @@ func main() {
 
 		if len(numbers) >= 2 {
 			numbers = string(numbers[0]) + string(numbers[len(numbers)-1])
+		} else if len(numbers) == 1 {
+			numbers = string(numbers[0]) + string(numbers[0])
 		}
 
 		fmt.Printf("Numbers corrected are: %s\n", numbers)
 
-		var num int
+		num := 0
+		var err error
 		num, err = strconv.Atoi(numbers)
 
 		if err == nil {
@@ -53,7 +44,30 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Sum for file %s is %d\n", fileName, sum)
+	return
+}
 
-	readFile.Close()
+func main() {
+
+	// recover file from env variables
+	present := false
+	fileName, present := os.LookupEnv("FILE")
+	if !present {
+		fmt.Print("FILE env variable not found, setting to example.txt")
+		fileName = "files/example.txt"
+	}
+
+	// open the file
+	readFile, err := os.Open(fileName)
+
+	if err == nil {
+		// compute the sum
+		sum := GetSumOfFile(readFile)
+		fmt.Printf("Sum for file %s is %d\n", fileName, sum)
+		readFile.Close()
+	} else {
+		// error, do nothing
+		fmt.Println(err)
+	}
+
 }
