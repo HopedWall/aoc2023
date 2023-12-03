@@ -5,28 +5,57 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"unicode"
 )
 
 func GetSumOfFile(file *os.File) (sum int) {
 	fileScanner := bufio.NewScanner(file)
 	fileScanner.Split(bufio.ScanLines)
-	for fileScanner.Scan() {
+	for fileScanner.Scan() { // for line in lines...
 		text := fileScanner.Text()
 		var numbers string
 
-		for _, r := range text {
+		// map used to check for substrings like "one", "two", ...
+		// and to convert said substring to digit
+		numbersMap := map[string]int{
+			"one":   1,
+			"two":   2,
+			"three": 3,
+			"four":  4,
+			"five":  5,
+			"six":   6,
+			"seven": 7,
+			"eight": 8,
+			"nine":  9,
+		}
+
+		// find all numbers in line
+		for i, r := range text {
 			if unicode.IsDigit(r) {
+				// if rune is digit, add it to numbers
 				fmt.Printf("Found rune: %s\n", string(r))
 				numbers += string(r)
+			} else {
+				// check for substring like "one", "two", "three"...
+				substring := text[i:]
+				for key, value := range numbersMap {
+					if strings.HasPrefix(substring, key) {
+						fmt.Printf("Found substring: %s\n", key)
+						numbers += strconv.Itoa(value)
+					}
+				}
 			}
 		}
 
 		fmt.Printf("Numbers are: %s\n", numbers)
 
+		// only keep relevant numbers
 		if len(numbers) >= 2 {
+			// keep only first and last number
 			numbers = string(numbers[0]) + string(numbers[len(numbers)-1])
 		} else if len(numbers) == 1 {
+			// repeat single number twice (i.e. 7 -> 77)
 			numbers = string(numbers[0]) + string(numbers[0])
 		}
 
@@ -38,6 +67,7 @@ func GetSumOfFile(file *os.File) (sum int) {
 
 		if err == nil {
 			fmt.Printf("Number is %d\n", num)
+			// add num from this line to overall sum
 			sum += num
 		} else {
 			fmt.Println(err)
